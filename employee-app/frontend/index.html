@@ -22,6 +22,12 @@
         .btn-sm { padding: 6px 12px; font-size: 12px; margin: 2px; }
         .btn:hover { opacity: 0.9; }
 
+        /* Stats banner */
+        .stats-bar { background: #0066cc; color: #fff; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-around; text-align: center; }
+        .stat-item h3 { font-size: 24px; margin-bottom: 4px; }
+        .stat-item p { font-size: 12px; opacity: 0.8; }
+        .toast { position: fixed; top: 20px; right: 20px; background: #28a745; color: #fff; padding: 12px 20px; border-radius: 6px; display: none; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+
         /* Employee cards */
         .employees-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
         .emp-card { background: #fff; border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; gap: 15px; align-items: center; }
@@ -34,6 +40,16 @@
 <body>
     <div class="container">
         <h1>Employee Directory</h1>
+
+        <!-- Stats Banner -->
+        <div class="stats-bar" id="stats-bar">
+            <div class="stat-item"><h3 id="stat-total">0</h3><p>Total Employees</p></div>
+            <div class="stat-item"><h3 id="stat-departments">0</h3><p>Departments</p></div>
+            <div class="stat-item"><h3 id="stat-latest">-</h3><p>Latest Hire</p></div>
+        </div>
+
+        <!-- Toast notification -->
+        <div class="toast" id="toast"></div>
 
         <!-- Add/Edit Form -->
         <div class="form-card">
@@ -57,6 +73,23 @@
 
     <script>
         const API_URL = window.location.origin + "/api";
+
+        // Load stats
+        async function loadStats() {
+            const res = await fetch(`${API_URL}/stats`);
+            const stats = await res.json();
+            document.getElementById("stat-total").textContent = stats.total_employees;
+            document.getElementById("stat-departments").textContent = Object.keys(stats.departments).length;
+            document.getElementById("stat-latest").textContent = stats.latest_hire ? stats.latest_hire.name : "-";
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById("toast");
+            toast.textContent = message;
+            toast.style.display = "block";
+            setTimeout(() => { toast.style.display = "none"; }, 3000);
+        }
 
         // Load employees on page load
         async function loadEmployees() {
@@ -98,18 +131,23 @@
             document.getElementById("employee-form").reset();
             document.getElementById("edit-id").value = "";
             document.getElementById("form-title").textContent = "Add Employee";
+            showToast(editId ? "Employee updated successfully!" : "Employee added successfully!");
             loadEmployees();
+            loadStats();
         });
 
         // Delete employee
         async function deleteEmployee(id) {
             if (confirm("Delete this employee?")) {
                 await fetch(`${API_URL}/employees/${id}`, { method: "DELETE" });
+                showToast("Employee deleted.");
                 loadEmployees();
+                loadStats();
             }
         }
 
         loadEmployees();
+        loadStats();
     </script>
 </body>
 </html>

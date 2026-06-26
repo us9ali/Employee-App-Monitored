@@ -203,5 +203,23 @@ def delete_employee(id):
     return jsonify({"message": "Employee deleted"})
 
 
+@app.route("/api/stats", methods=["GET"])
+def get_stats():
+    """Returns employee stats: total count, department breakdown, latest hire."""
+    total = Employee.query.count()
+    departments = db.session.query(
+        Employee.department, db.func.count(Employee.id)
+    ).group_by(Employee.department).all()
+    latest = Employee.query.order_by(Employee.id.desc()).first()
+
+    stats = {
+        "total_employees": total,
+        "departments": {dept: count for dept, count in departments},
+        "latest_hire": latest.to_dict() if latest else None,
+    }
+    logger.info(f"Stats requested: {total} employees across {len(departments)} departments")
+    return jsonify(stats)
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

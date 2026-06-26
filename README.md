@@ -90,3 +90,41 @@ cd employee-app/backend
 pip install -r requirements.txt
 pytest
 ```
+
+## Connect to the Database
+
+### From your local machine (via port-forward)
+
+```bash
+# Find the RDS endpoint
+aws rds describe-db-instances --db-instance-identifier landmark-db-dev --query "DBInstances[0].Endpoint.Address" --output text --profile terraform
+
+# Port-forward through a pod in the cluster
+kubectl run pg-client --rm -it --image=postgres:15 --namespace=employee-app -- bash
+
+# Inside the pod, connect to RDS
+psql -h <RDS_ENDPOINT> -U landmark_admin -d employees
+```
+
+### From any pod in the cluster
+
+```bash
+# Get the DATABASE_URL from the secret
+kubectl get secret db-credentials -n employee-app -o jsonpath='{.data.DATABASE_URL}' | base64 -d
+
+# Or connect directly
+kubectl exec -it deploy/backend -n employee-app -- python -c "from app import db; print(db.engine.url)"
+```
+
+### Useful psql commands
+
+```sql
+-- List all employees
+SELECT * FROM employees;
+
+-- Count by department
+SELECT department, COUNT(*) FROM employees GROUP BY department;
+
+-- Check latest entries
+SELECT * FROM employees ORDER BY id DESC LIMIT 5;
+```
