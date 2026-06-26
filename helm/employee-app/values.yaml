@@ -1,0 +1,40 @@
+# Backend configuration
+backend:
+  image: 075120018043.dkr.ecr.us-east-1.amazonaws.com/employee-backend
+  tag: latest
+  replicas: 2
+  port: 5000
+
+# Frontend configuration
+frontend:
+  image: 075120018043.dkr.ecr.us-east-1.amazonaws.com/employee-frontend
+  tag: latest
+  replicas: 2
+  port: 80
+
+# Service Account for S3 + Secrets Manager access
+serviceAccount:
+  name: app-sa
+  roleArn: ""
+
+# External Secrets - AWS Secrets Manager
+externalSecrets:
+  secretName: "landmark-cluster-dev/employee-app"
+  refreshInterval: "1m"
+
+# Ingress with TLS
+ingress:
+  enabled: true
+  host: "employees.landmark.dev"
+  certificateArn: ""
+  ingressClass: alb
+
+# S3 bucket
+s3:
+  bucket: "landmark-app-bucket-dev"
+  region: "us-east-1"
+
+# CloudWatch Logging
+logging:
+  logGroup: "/landmark/employee-app"
+  environment: "dev"

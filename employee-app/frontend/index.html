@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Directory</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; padding: 20px; }
+        h1 { text-align: center; margin-bottom: 20px; color: #333; }
+        .container { max-width: 1000px; margin: 0 auto; }
+
+        /* Form */
+        .form-card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .form-card h2 { margin-bottom: 15px; color: #555; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .form-grid input, .form-grid select { padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        .form-grid input[type="file"] { grid-column: span 2; }
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-top: 10px; }
+        .btn-primary { background: #0066cc; color: #fff; }
+        .btn-danger { background: #dc3545; color: #fff; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; margin: 2px; }
+        .btn:hover { opacity: 0.9; }
+
+        /* Employee cards */
+        .employees-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
+        .emp-card { background: #fff; border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; gap: 15px; align-items: center; }
+        .emp-card img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; background: #ddd; }
+        .emp-info h3 { font-size: 16px; color: #333; }
+        .emp-info p { font-size: 13px; color: #666; margin-top: 2px; }
+        .emp-actions { margin-left: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Employee Directory</h1>
+
+        <!-- Add/Edit Form -->
+        <div class="form-card">
+            <h2 id="form-title">Add Employee</h2>
+            <form id="employee-form">
+                <input type="hidden" id="edit-id">
+                <div class="form-grid">
+                    <input type="text" id="name" placeholder="Full Name" required>
+                    <input type="email" id="email" placeholder="Email" required>
+                    <input type="text" id="role" placeholder="Role" required>
+                    <input type="text" id="department" placeholder="Department" required>
+                    <input type="file" id="photo" accept="image/*">
+                </div>
+                <button type="submit" class="btn btn-primary">Save Employee</button>
+            </form>
+        </div>
+
+        <!-- Employee List -->
+        <div class="employees-grid" id="employees-list"></div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin + "/api";
+
+        // Load employees on page load
+        async function loadEmployees() {
+            const res = await fetch(`${API_URL}/employees`);
+            const employees = await res.json();
+            const grid = document.getElementById("employees-list");
+            grid.innerHTML = employees.map(emp => `
+                <div class="emp-card">
+                    <img src="${emp.photo_url || 'https://via.placeholder.com/60'}" alt="${emp.name}">
+                    <div class="emp-info">
+                        <h3>${emp.name}</h3>
+                        <p>${emp.role}</p>
+                        <p>${emp.department} &bull; ${emp.email}</p>
+                    </div>
+                    <div class="emp-actions">
+                        <button class="btn btn-danger btn-sm" onclick="deleteEmployee(${emp.id})">Delete</button>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        // Submit form (create)
+        document.getElementById("employee-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append("name", document.getElementById("name").value);
+            formData.append("email", document.getElementById("email").value);
+            formData.append("role", document.getElementById("role").value);
+            formData.append("department", document.getElementById("department").value);
+
+            const photo = document.getElementById("photo").files[0];
+            if (photo) formData.append("photo", photo);
+
+            const editId = document.getElementById("edit-id").value;
+            const url = editId ? `${API_URL}/employees/${editId}` : `${API_URL}/employees`;
+            const method = editId ? "PUT" : "POST";
+
+            await fetch(url, { method, body: formData });
+            document.getElementById("employee-form").reset();
+            document.getElementById("edit-id").value = "";
+            document.getElementById("form-title").textContent = "Add Employee";
+            loadEmployees();
+        });
+
+        // Delete employee
+        async function deleteEmployee(id) {
+            if (confirm("Delete this employee?")) {
+                await fetch(`${API_URL}/employees/${id}`, { method: "DELETE" });
+                loadEmployees();
+            }
+        }
+
+        loadEmployees();
+    </script>
+</body>
+</html>
