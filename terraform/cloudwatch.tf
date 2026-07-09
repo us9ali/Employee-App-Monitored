@@ -13,7 +13,3 @@ resource "aws_cloudwatch_log_group" "app" {
   }
 }
 
-import {
-  to = aws_cloudwatch_log_group.app
-  id = "/landmark/employee-app"
-}
