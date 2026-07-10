@@ -36,3 +36,31 @@ s3:
 logging:
   logGroup: "/landmark/employee-app"
   environment: "dev"
+
+# Monitoring - kube-prometheus-stack
+monitoring:
+  enabled: true
+
+kube-prometheus-stack:
+  alertmanager:
+    enabled: false
+  grafana:
+    adminPassword: admin123
+    service:
+      type: LoadBalancer
+  prometheus:
+    prometheusSpec:
+      serviceMonitorSelectorNilUsesHelmValues: false
+      podMonitorSelectorNilUsesHelmValues: false
+      retention: 7d
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 10Gi
+  nodeExporter:
+    enabled: true
+  kubeStateMetrics:
+    enabled: true

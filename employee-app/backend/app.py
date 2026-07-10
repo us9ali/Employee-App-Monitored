@@ -8,6 +8,7 @@ import boto3
 import watchtower
 from werkzeug.utils import secure_filename
 from uuid import uuid4
+from prometheus_flask_instrumentator import Instrumentator
 
 # --- Configuration ---
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
@@ -77,6 +78,9 @@ class Employee(db.Model):
             "photo_url": self.photo_url,
         }
 
+
+# Prometheus metrics
+Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 
 # Create tables on startup
 with app.app_context():
