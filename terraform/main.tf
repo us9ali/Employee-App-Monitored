@@ -260,7 +260,12 @@ resource "aws_iam_policy" "cloudwatch_logs" {
         "logs:CreateLogStream",
         "logs:PutLogEvents",
         "logs:DescribeLogGroups",
-        "logs:DescribeLogStreams"
+        "logs:DescribeLogStreams",
+        "logs:StartQuery",
+        "logs:StopQuery",
+        "logs:GetQueryResults",
+        "logs:GetLogEvents",
+        "logs:FilterLogEvents"
       ]
       Resource = [
         "${aws_cloudwatch_log_group.app.arn}:*"
