@@ -109,6 +109,7 @@ jobs:
           git config user.email "github-actions@github.com"
           git add helm/values.yaml
           git commit -m "ci: update tags - backend:${{ needs.build-and-push.outputs.backend_tag }} frontend:${{ needs.build-and-push.outputs.frontend_tag }}" || true
+          git pull --rebase origin main
           git push
 
       - name: Install/Upgrade Helm release
