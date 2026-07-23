@@ -34,7 +34,7 @@ module "vpc" {
 # EKS Module
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "20.31.6"
+  version = "20.37.1"
 
   cluster_name    = "${var.cluster_name}-${var.environment}"
   cluster_version = var.kubernetes_version
@@ -247,29 +247,42 @@ resource "aws_iam_policy" "ecr_access" {
   })
 }
 
-# CloudWatch Logs policy for streaming application logs
+# CloudWatch Logs policy for streaming application logs and Grafana datasource
 resource "aws_iam_policy" "cloudwatch_logs" {
   name = "${var.cluster_name}-${var.environment}-cloudwatch-logs"
 
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Action = [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents",
-        "logs:DescribeLogGroups",
-        "logs:DescribeLogStreams",
-        "logs:StartQuery",
-        "logs:StopQuery",
-        "logs:GetQueryResults",
-        "logs:GetLogEvents",
-        "logs:FilterLogEvents"
-      ]
-      Resource = [
-        "${aws_cloudwatch_log_group.app.arn}:*"
-      ]
-    }]
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogGroups",
+          "logs:DescribeLogStreams",
+          "logs:StartQuery",
+          "logs:StopQuery",
+          "logs:GetQueryResults",
+          "logs:GetLogEvents",
+          "logs:FilterLogEvents"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "cloudwatch:DescribeAlarmsForMetric",
+          "cloudwatch:DescribeAlarmHistory",
+          "cloudwatch:DescribeAlarms",
+          "cloudwatch:ListMetrics",
+          "cloudwatch:GetMetricStatistics",
+          "cloudwatch:GetMetricData",
+          "cloudwatch:GetInsightRuleReport"
+        ]
+        Resource = "*"
+      },
+    ]
   })
 }

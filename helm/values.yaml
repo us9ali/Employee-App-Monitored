@@ -1,21 +1,21 @@
 # Backend configuration
 backend:
-  image: 075120018043.dkr.ecr.us-east-1.amazonaws.com/employee-backend
-  tag: be-dev-20260710-013631
+  image: 307711586773.dkr.ecr.us-east-1.amazonaws.com/employee-backend
+  tag: latest
   replicas: 2
   port: 5000
 
 # Frontend configuration
 frontend:
-  image: 075120018043.dkr.ecr.us-east-1.amazonaws.com/employee-frontend
-  tag: fe-dev-20260710-013631
+  image: 307711586773.dkr.ecr.us-east-1.amazonaws.com/employee-frontend
+  tag: latest
   replicas: 2
   port: 80
 
 # Service Account for S3 + Secrets Manager access
 serviceAccount:
   name: app-sa
-  roleArn: "arn:aws:iam::075120018043:role/landmark-cluster-dev-app-sa"
+  roleArn: "arn:aws:iam::307711586773:role/landmark-cluster-dev-app-sa"
 
 # External Secrets - AWS Secrets Manager
 externalSecrets:
@@ -29,7 +29,7 @@ ingress:
 
 # S3 bucket
 s3:
-  bucket: "landmark-app-bucket-dev"
+  bucket: "landmarkdevops-app-bucket-dev"
   region: "us-east-1"
 
 # CloudWatch Logging
@@ -66,11 +66,13 @@ kube-prometheus-stack:
           authType: default
           defaultRegion: us-east-1
           logGroups:
-            - arn: ""
+            - arn: "arn:aws:logs:us-east-1:307711586773:log-group:/landmark/employee-app"
               name: /landmark/employee-app
     serviceAccount:
+      create: true
+      name: employee-app-grafana
       annotations:
-        eks.amazonaws.com/role-arn: "arn:aws:iam::075120018043:role/landmark-cluster-dev-app-sa"
+        eks.amazonaws.com/role-arn: "arn:aws:iam::307711586773:role/landmark-cluster-dev-app-sa"
   prometheus:
     prometheusSpec:
       serviceMonitorSelectorNilUsesHelmValues: false
