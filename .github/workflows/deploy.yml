@@ -88,16 +88,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ vars.AWS_REGION }}
-
-      - name: Update kubeconfig
-        run: aws eks update-kubeconfig --name ${{ vars.EKS_CLUSTER }} --region ${{ vars.AWS_REGION }}
-
       - name: Update image tags in values.yaml
         run: |
           sed -i "0,/tag: .*/s/tag: .*/tag: ${{ needs.build-and-push.outputs.backend_tag }}/" helm/values.yaml
@@ -111,16 +101,3 @@ jobs:
           git commit -m "ci: update tags - backend:${{ needs.build-and-push.outputs.backend_tag }} frontend:${{ needs.build-and-push.outputs.frontend_tag }}" || true
           git pull --rebase origin main
           git push
-
-      - name: Install/Upgrade Helm release
-        run: |
-          helm upgrade --install employee-app helm/ \
-            --namespace ${{ vars.NAMESPACE }} \
-            --create-namespace \
-            --wait \
-            --timeout 5m
-
-      - name: Verify deployment
-        run: |
-          kubectl get pods -n ${{ vars.NAMESPACE }}
-          kubectl get ingress -n ${{ vars.NAMESPACE }}
